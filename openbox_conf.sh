@@ -1,48 +1,65 @@
 #!/bin/bash
-# Install Openbox
-pacman -S openbox obconf nitrogen lxappearance --noconfirm
 
-# Install panel and dock, file manager, and terminal
-pacman -S tint2 plank pcmanfm xfce4-terminal gedit git --noconfirm
+# پاک کردن بسته‌های قبلی
+echo "پاک کردن بسته‌های قبلی..."
+sudo pacman -Rns --noconfirm openbox obconf nitrogen lxappearance tint2 plank pcmanfm xfce4-terminal gedit git xorg-server xorg-xinit volumeicon network-manager-applet gtk-engine-murrine numix-themes-archblue lightdm lightdm-gtk-greeter
 
-# Install X SERVER
-pacman -S --needed xorg-server xorg-xinit --noconfirm
+# پاک کردن فایل‌های پیکربندی قبلی
+echo "پاک کردن فایل‌های پیکربندی قبلی..."
+rm -rf ~/.config/openbox
+rm -rf ~/.config/tint2
+rm -rf ~/.xinitrc
+rm -rf ~/.config/plank
+rm -rf ~/.config/gtk-3.0
 
-# Install volume controller
-pacman -S volumeicon --noconfirm
+# نصب بسته‌های جدید
+echo "نصب بسته‌های جدید..."
+sudo pacman -S --needed --noconfirm openbox obconf nitrogen lxappearance tint2 plank pcmanfm xfce4-terminal gedit git xorg-server xorg-xinit volumeicon network-manager-applet gtk-engine-murrine numix-themes-archblue lightdm lightdm-gtk-greeter
 
-# Install WiFi manager
-pacman -S network-manager-applet --noconfirm
-
-# Install some popular Openbox themes
-pacman -S gtk-engine-murrine numix-themes-archblue --noconfirm 
-
-# Copy Openbox configuration files
+# کپی فایل‌های پیکربندی Openbox
+echo "کپی فایل‌های پیکربندی Openbox..."
 cp -r /etc/xdg/openbox ~/.config/
 
-# Create Openbox autostart file
+# ایجاد فایل autostart برای Openbox
+echo "ایجاد فایل autostart..."
 touch ~/.config/openbox/autostart
 chmod +x ~/.config/openbox/autostart
 
-# Add panel, dock, wallpaper manager, volume controller, and WiFi manager to Openbox autostart file
+# اضافه کردن برنامه‌ها به فایل autostart
+echo "اضافه کردن برنامه‌ها به فایل autostart..."
+cat > ~/.config/openbox/autostart <<EOF
+#!/bin/sh
 
-echo "tint2 &" >> ~/.config/openbox/autostart
-echo "plank &" >> ~/.config/openbox/autostart
-echo "nitrogen --restore &" >> ~/.config/openbox/autostart
-echo "volumeicon &" >> ~/.config/openbox/autostart
-echo "nm-applet &" >> ~/.config/openbox/autostart
+# اجرای نوار وظیفه tint2
+tint2 &
 
-# Set Openbox as default window manager
+# اجرای داک plank
+plank &
+
+# تنظیم تصویر زمینه با nitrogen
+nitrogen --restore &
+
+# اجرای کنترلر صدا
+volumeicon &
+
+# اجرای مدیر شبکه
+nm-applet &
+EOF
+
+# تنظیم Openbox به عنوان مدیر پنجره پیش‌فرض
+echo "تنظیم Openbox به عنوان مدیر پنجره پیش‌فرض..."
 echo "exec openbox-session" > ~/.xinitrc
 
-# Apply a theme
-
+# اعمال تم
+echo "اعمال تم..."
 obconf --set --theme /usr/share/themes/Numix-archblue/openbox-3/themerc
 
-pacman -S lightdm lightdm-gtk-greeter --noconfirm
+# پیکربندی lightdm
+echo "پیکربندی lightdm..."
+sudo sed -i 's/^greeter-session=.*/greeter-session=lightdm-gtk-greeter/' /etc/lightdm/lightdm.conf
+sudo systemctl enable lightdm.service
 
-sed -i 's/^greeter-session=.*/greeter-session=lightdm-gtk-greeter/' /etc/lightdm/lightdm.conf
-
-systemctl enable lightdm.service
-
-reboot now
+# راه‌اندازی مجدد سیستم
+echo "راه‌اندازی مجدد سیستم..."
+read -p "برای راه‌اندازی مجدد سیستم، کلید Enter را فشار دهید..."
+reboot
